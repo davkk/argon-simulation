@@ -7,7 +7,7 @@ from numba import jit
 
 
 @jit(nopython=True, cache=True)
-def simulate(*, n, a, T_0, m):
+def simulate(*, n, a, T0, m):
     N = n * n * n  # total number of atoms
 
     b0 = np.array([a, 0, 0], dtype=np.float64)
@@ -26,30 +26,27 @@ def simulate(*, n, a, T_0, m):
 
     k = 8.31e-3  # nm^2 kg s^-2 K^-1
 
-    E_k = np.empty((N, 3))
-    for i in range(N):
-        E_k[i] = -0.5 * k * T_0 * np.log(np.random.random(3))
+    E_k = -0.5 * k * T0 * np.log(np.random.random((N, 3)))
 
-    p_0 = np.empty((N, 3))
-    for i in range(N):
-        signs = np.random.choice(np.array([-1, 1]), 3)
-        p_0[i] = signs * np.sqrt(2 * m * E_k[i])
+    signs = np.random.choice(np.array([-1, 1]), (N, 3))
+    p0 = signs * np.sqrt(2 * m * E_k)
 
-    P = np.sum(p_0, axis=0)
-    p_0 = p_0 - P / N
+    P = np.sum(p0, axis=0)
+    p0 = p0 - P / N
 
-    return p_0
+    return r0, p0
 
 
 # %%
 with open("parameters.toml", mode="rb") as fp:
     params = tomllib.load(fp)
 
-    result = simulate(
+    result_r0, result_p0 = simulate(
         n=params["n"],
         a=params["a"],  # nm
-        T_0=params["T_0"],  # K
+        T0=params["T0"],  # K
         m=params["m"],  # kg
     )
 
-    np.savetxt("p0", result)
+    np.savetxt("r0.out", result_r0)
+    np.savetxt("p0.out", result_p0)
