@@ -1,13 +1,16 @@
 # %%
-import tomllib
 from math import sqrt
 
 import numpy as np
 from numba import njit
+from numba.pycc import CC
+
+cc = CC("argon")
 
 
 # %%
-@njit(parallel=True, fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
+@cc.export("calc_static", "Array(f8, 2, 'C'), i8, f8, f8, f8, f8")
 def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
     F_s = np.zeros((N, 3))
     F_p = np.zeros((N, 3))
@@ -17,13 +20,16 @@ def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
     V_p = 0
 
     for i in range(N):
-        r_i = np.linalg.norm(r[i])
+        r_i = np.sqrt((r[i] * r[i]).sum())
         if r_i >= L:
             V_s += 0.5 * f * (r_i - L) * (r_i - L)
             F_s[i] = f * (L - r_i) * r[i] / r_i
 
-        for j in range(i):
-            r_ij = np.linalg.norm(r[i] - r[j])
+        for j in range(N):
+            if i == j:
+                continue
+
+            r_ij = np.sqrt(((r[i] - r[j]) * (r[i] - r[j])).sum())
             V_p += e * (np.power(R / r_ij, 12) - 2 * np.power(R / r_ij, 6))
             F_p[i] += (
                 12
@@ -40,9 +46,9 @@ def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
 
 
 # %%
-@njit(parallel=True, fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
+@cc.export("simulate", "i8, f8, i8, i8, f8, f8, f8, f8, f8, i8, i8, i8, i8")
 def simulate(
-    *,
     n: int,
     a: float,
     T0: int,
@@ -80,56 +86,37 @@ def simulate(
     signs = np.random.choice(np.array([-1, 1]), (N, 3))
     p = signs * np.sqrt(2 * m * E_k0)
 
-    p = np.sum(p, axis=0)
-    p = p - p / N
-
-    stats_out = np.array([])
-    stats_xyz = np.array([])
+    p = p - np.sum(p, axis=0) / N
 
     F, V_s, P_s = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
 
-    for s in np.arange(S_o + S_d):
+    T_avg, P_avg, H_avg = 0, 0, 0
+
+    for s in range(S_o + S_d):
         p_half = p + 0.5 * F * tau
         r = r + p_half * tau / m
 
-        # F, V_s, P_s = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
+        F, V_s, P_s = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
         p = p_half + 0.5 * F * tau
 
         E_k = np.sum(p * p) / (2 * m)
-        H_s =  E_k + V_s
+        H_s = E_k + V_s
         T_s = 2 / (3 * N * k) * E_k
 
-        if s % S_out:
-            stats_out.append(s, V_s, P_s, H_s, T_s)
+        if s % S_out == 0:
+            print("out", s, H_s, V_s, T_s, P_s)
 
-        if s % S_xyz:
-            stats_xyz.append(*(np.column_stack((r, E_k))))
+        if s % S_xyz == 0:
+            for i in range(N):
+                print("xyz", r[i][0], r[i][1], r[i][2], E_k)
 
-    return stats_out, stats_xyz
+        if s >= S_o:
+            T_avg += T_s
+            P_avg += P_s
+            H_avg += H_s
 
-
-
-# %%
-def main():
-    with open("parameters.toml", mode="rb") as fp:
-        params = tomllib.load(fp)
-
-        simulate(
-            n=params["n"],
-            a=params["a"],  # nm
-            T0=params["T0"],  # K
-            m=params["m"],  # kg
-            L=params["L"],  # nm
-            f=params["f"],
-            e=params["e"],
-            R=params["R"],
-            tau=params["tau"],
-            S_o=params["S_o"],
-            S_d=params["S_d"],
-            S_out=params["S_out"],
-            S_xyz=params["S_xyz"],
-        )
+    return T_avg / S_d, P_avg / S_d, H_avg / S_d
 
 
 if __name__ == "__main__":
-    main()
+    cc.compile()
