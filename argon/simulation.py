@@ -85,18 +85,22 @@ def simulate(
 
     p = p - np.sum(p, axis=0) / N
 
-    F, V, P = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
+    F, V, P = calc_static(r, N, f, L, e, R)
 
     T_avg, P_avg, H_avg = 0, 0, 0
 
     E_k = np.sum(p * p) / (2 * m)
+
+    H = E_k + V
+    T = 2 / (3 * N * k) * E_k
+    print("out", 0, H, V, T, P)
 
     print("xyz", N)
     print("xyz")
     for i in range(N):
         print("xyz", "atom", r[i][0], r[i][1], r[i][2], E_k)
 
-    for s in range(S_o + S_d):
+    for s in range(1, S_o + S_d):
         p += 0.5 * F * tau
         r += p * tau / m
 
@@ -108,7 +112,7 @@ def simulate(
         T = 2 / (3 * N * k) * E_k
 
         if s % S_out == 0:
-            print("out", s, H, V, T, P)
+            print("out", s * tau, H, V, T, P)
 
         if s % S_xyz == 0:
             print("xyz", N)
