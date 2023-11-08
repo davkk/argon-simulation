@@ -1,4 +1,3 @@
-# %%
 from math import sqrt
 
 import numpy as np
@@ -8,8 +7,7 @@ from numba.pycc import CC
 cc = CC("argon")
 
 
-# %%
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 @cc.export("calc_static", "Array(f8, 2, 'C'), i8, f8, f8, f8, f8")
 def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
     F_s = np.zeros((N, 3))
@@ -45,8 +43,7 @@ def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
     return F_s + F_p, V_s + V_p, P
 
 
-# %%
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 @cc.export("simulate", "i8, f8, i8, i8, f8, f8, f8, f8, f8, i8, i8, i8, i8")
 def simulate(
     n: int,
@@ -88,35 +85,48 @@ def simulate(
 
     p = p - np.sum(p, axis=0) / N
 
-    F, V_s, P_s = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
+    F, V, P = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
 
     T_avg, P_avg, H_avg = 0, 0, 0
 
-    for s in range(S_o + S_d):
-        p_half = p + 0.5 * F * tau
-        r = r + p_half * tau / m
+    E_k = np.sum(p * p) / (2 * m)
 
-        F, V_s, P_s = calc_static(r=r, N=N, f=f, L=L, e=e, R=R)
-        p = p_half + 0.5 * F * tau
+    print("xyz", N)
+    print("xyz")
+    for i in range(N):
+        print("xyz", "atom", r[i][0], r[i][1], r[i][2], E_k)
+
+    for s in range(S_o + S_d):
+        p += 0.5 * F * tau
+        r += p * tau / m
+
+        F, V, P = calc_static(r, N, f, L, e, R)
+        p += 0.5 * F * tau
 
         E_k = np.sum(p * p) / (2 * m)
-        H_s = E_k + V_s
-        T_s = 2 / (3 * N * k) * E_k
+        H = E_k + V
+        T = 2 / (3 * N * k) * E_k
 
         if s % S_out == 0:
-            print("out", s, H_s, V_s, T_s, P_s)
+            print("out", s, H, V, T, P)
 
         if s % S_xyz == 0:
+            print("xyz", N)
+            print("xyz")
             for i in range(N):
-                print("xyz", r[i][0], r[i][1], r[i][2], E_k)
+                print("xyz", "atom", r[i][0], r[i][1], r[i][2], E_k)
 
         if s >= S_o:
-            T_avg += T_s
-            P_avg += P_s
-            H_avg += H_s
+            T_avg += T
+            P_avg += P
+            H_avg += H
 
     return T_avg / S_d, P_avg / S_d, H_avg / S_d
 
 
-if __name__ == "__main__":
+def main():
     cc.compile()
+
+
+if __name__ == "__main__":
+    main()

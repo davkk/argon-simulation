@@ -1,11 +1,11 @@
 import sys
 import tomllib
 
-from argon import simulate
+from .argon import simulate
 
 
 def main():
-    with open("./parameters.toml", mode="rb") as fp:
+    with open(sys.argv[1] or "./parameters.toml", mode="rb") as fp:
         params = tomllib.load(fp)
 
         T_avg, P_avg, H_avg = simulate(
