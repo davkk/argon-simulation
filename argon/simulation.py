@@ -1,5 +1,4 @@
-from math import sqrt
-
+import numba as nb
 import numpy as np
 from numba import njit
 from numba.pycc import CC
@@ -10,24 +9,18 @@ cc = CC("argon")
 @njit(cache=True)
 @cc.export("calc_static", "Array(f8, 2, 'C'), i8, f8, f8, f8, f8")
 def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
-    F_s = np.zeros((N, 3))
-    F_p = np.zeros((N, 3))
-
+    F = np.zeros((N, 3))
     P = 0
-    V_s = 0
-    V_p = 0
+    V = 0
 
-    for i in range(N):
+    for i in nb.prange(N):
         r_i = np.sqrt(r[i] @ r[i])
         if r_i >= L:
-            V_s += 0.5 * f * (r_i - L) * (r_i - L)
-            F_s[i] = f * (L - r_i) * r[i] / r_i
-            P += np.sqrt(F_s[i] @ F_s[i])
+            V += 0.5 * f * (r_i - L) * (r_i - L)
+            F[i] = f * (L - r_i) * r[i] / r_i
+            P += np.sqrt(F[i] @ F[i])
 
-        for j in range(N):
-            if i == j:
-                continue
-
+        for j in nb.prange(i):
             dr = r[i] - r[j]
             r_ij = np.sqrt(dr @ dr)
 
@@ -35,12 +28,15 @@ def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
             R_r_ij_6 = R_r_ij * R_r_ij * R_r_ij * R_r_ij * R_r_ij * R_r_ij
             R_r_ij_12 = R_r_ij_6 * R_r_ij_6
 
-            V_p += e * (R_r_ij_12 - 2 * R_r_ij_6)
-            F_p[i] += 12 * e * (R_r_ij_12 - R_r_ij_6) * dr / r_ij / r_ij
+            V += e * (R_r_ij_12 - 2 * R_r_ij_6)
+
+            coeff = 12 * e * (R_r_ij_12 - R_r_ij_6) * dr / r_ij / r_ij
+            F[i] += coeff
+            F[j] -= coeff
 
     P /= 4 * np.pi * L * L
 
-    return F_s + F_p, V_s + V_p, P
+    return F, V, P
 
 
 @njit(cache=True)
@@ -63,8 +59,10 @@ def simulate(
     N = n * n * n  # total number of atoms
 
     b0 = np.array([a, 0, 0], dtype=np.float64)
-    b1 = np.array([a / 2, a * sqrt(3) / 2, 0], dtype=np.float64)
-    b2 = np.array([a / 2, a * sqrt(3) / 6, a * sqrt(2 / 3)], dtype=np.float64)
+    b1 = np.array([a / 2, a * np.sqrt(3) / 2, 0], dtype=np.float64)
+    b2 = np.array(
+        [a / 2, a * np.sqrt(3) / 6, a * np.sqrt(2 / 3)], dtype=np.float64
+    )
 
     r = np.empty((N, 3))
     for i0 in range(n):
