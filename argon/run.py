@@ -5,13 +5,13 @@ from .argon import simulate
 
 
 def main():
-    with open(sys.argv[1] or "./parameters.toml", mode="rb") as fp:
+    with open(sys.argv[1], mode="rb") as fp:
         params = tomllib.load(fp)
 
         T_avg, P_avg, H_avg = simulate(
             params["n"],
             params["a"],
-            params["T0"],
+            int(sys.argv[2]) if len(sys.argv) == 3 else params["T0"],
             params["m"],
             params["L"],
             params["f"],

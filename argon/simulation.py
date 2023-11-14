@@ -18,27 +18,27 @@ def calc_static(r: np.ndarray, N: int, f: float, L: float, e: float, R: float):
     V_p = 0
 
     for i in range(N):
-        r_i = np.sqrt((r[i] * r[i]).sum())
+        r_i = np.sqrt(r[i] @ r[i])
         if r_i >= L:
             V_s += 0.5 * f * (r_i - L) * (r_i - L)
             F_s[i] = f * (L - r_i) * r[i] / r_i
+            P += np.sqrt(F_s[i] @ F_s[i])
 
         for j in range(N):
             if i == j:
                 continue
 
-            r_ij = np.sqrt(((r[i] - r[j]) * (r[i] - r[j])).sum())
-            V_p += e * (np.power(R / r_ij, 12) - 2 * np.power(R / r_ij, 6))
-            F_p[i] += (
-                12
-                * e
-                * (np.power(R / r_ij, 12) - np.power(R / r_ij, 6))
-                * (r[i] - r[j])
-                / r_ij
-                / r_ij
-            )
+            dr = r[i] - r[j]
+            r_ij = np.sqrt(dr @ dr)
 
-    P = np.sum(np.sqrt(np.sum(F_s * F_s, axis=1))) / (4 * np.pi * L * L)
+            R_r_ij = R / r_ij
+            R_r_ij_6 = R_r_ij * R_r_ij * R_r_ij * R_r_ij * R_r_ij * R_r_ij
+            R_r_ij_12 = R_r_ij_6 * R_r_ij_6
+
+            V_p += e * (R_r_ij_12 - 2 * R_r_ij_6)
+            F_p[i] += 12 * e * (R_r_ij_12 - R_r_ij_6) * dr / r_ij / r_ij
+
+    P /= 4 * np.pi * L * L
 
     return F_s + F_p, V_s + V_p, P
 
