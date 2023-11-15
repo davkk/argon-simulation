@@ -1,23 +1,31 @@
+import argparse
 import sys
 import tomllib
+from pathlib import Path
 
 from .argon import simulate
 
 
 def main():
-    with open(sys.argv[1], mode="rb") as fp:
+    parser = argparse.ArgumentParser(description="MD - Argon Simulation")
+    parser.add_argument("parameters", metavar="path", type=Path)
+    parser.add_argument("--tau", type=float)
+    parser.add_argument("-T", type=float)
+    args = parser.parse_args()
+
+    with open(str(args.parameters), mode="rb") as fp:
         params = tomllib.load(fp)
 
         T_avg, P_avg, H_avg = simulate(
             params["n"],
             params["a"],
-            int(sys.argv[2]) if len(sys.argv) == 3 else params["T0"],
+            args.T or params["T0"],
             params["m"],
             params["L"],
             params["f"],
             params["e"],
             params["R"],
-            params["tau"],
+            args.tau or params["tau"],
             params["S_o"],
             params["S_d"],
             params["S_out"],

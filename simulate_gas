@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-mkdir -p data/runs/
+name=`date +%s`
+output_dir=data/runs/$name
+mkdir -p $output_dir
 
-parallel -j4 --delay 0.1 --progress \
-    --results data/runs/`date +%s`/{} \
-    argon ./gas.toml {} \
+parallel -j4 --delay 0.1 \
+    --results $output_dir/{} \
+    argon ./gas.toml -T {} \
     ::: 500 1000 1500 2000
+
+find $output_dir -type f \
+    | grep err \
+    | xargs -I{} awk '{ print $2, $3 }' {} \
+    | tee data/processed/P_vs_T_$name
