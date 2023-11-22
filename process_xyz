@@ -3,5 +3,5 @@
 grep xyz $1 \
     | awk '
         NR == 2 { print "jmolscript: anim mode loop; anim on" }
-        NR != 2 { print $2, $3, $4, $5 }' \
-    | tee processed_xyz.out
+        NR != 2 { print $2, $3, $4, $5 }
+    '

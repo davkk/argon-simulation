@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function do_simulate {
+    argon melting.toml -T $1 \
+        | grep xyz \
+        | awk '
+            NR == 2 { print "jmolscript: anim mode once; anim on" }
+            NR != 2 { print $2, $3, $4, $5 }
+        '
+}
+export -f do_simulate
+
+parallel -j10 --delay 0.1 -k do_simulate {} ::: `seq 0 10 100` \
+    > data/melting_`date +%s`.out

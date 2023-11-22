@@ -11,6 +11,8 @@ def main():
     parser.add_argument("parameters", metavar="path", type=Path)
     parser.add_argument("--tau", type=float)
     parser.add_argument("-T", type=float)
+    parser.add_argument("--steps", type=int)
+    parser.add_argument("-a", type=float)
     args = parser.parse_args()
 
     with open(str(args.parameters), mode="rb") as fp:
@@ -18,7 +20,7 @@ def main():
 
         T_avg, P_avg, H_avg = simulate(
             params["n"],
-            params["a"],
+            args.a or params["a"],
             args.T or params["T0"],
             params["m"],
             params["L"],
@@ -27,7 +29,7 @@ def main():
             params["R"],
             args.tau or params["tau"],
             params["S_o"],
-            params["S_d"],
+            args.steps or params["S_d"],
             params["S_out"],
             params["S_xyz"],
         )

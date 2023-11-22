@@ -9,13 +9,15 @@ def setup_pyplot():
     plt.style.use("seaborn-v0_8-muted")
 
     plt.rcParams["figure.figsize"] = (14, 8)
-    plt.rcParams["figure.dpi"] = 300
+    # plt.rcParams["figure.dpi"] = 300
     plt.rcParams["font.family"] = "serif"
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["xtick.direction"] = "in"
     plt.rcParams["ytick.direction"] = "in"
 
     plt.rcParams["axes.formatter.limits"] = -3, 3
+    plt.rcParams["axes.formatter.use_mathtext"] = True
+    plt.rcParams["axes.formatter.useoffset"] = False
     plt.rcParams["axes.grid"] = True
     plt.rcParams["grid.color"] = "gainsboro"
 
