@@ -8,7 +8,7 @@ from figures import common
 
 common.setup_pyplot()
 
-root_path = Path("./data/processed/stability_1700677133")
+root_path = Path("./data/processed/stability_1700835465/")
 files = os.listdir(root_path)
 files.sort()
 
@@ -25,4 +25,4 @@ fig.supylabel("$H$ [kJ/mol]")
 fig.tight_layout()
 # plt.show()
 
-plt.savefig("./figures/stability.pdf")
+plt.savefig("./figures/stability_2.pdf")

@@ -48,11 +48,16 @@
 \begin{figure}[ht!]
     \caption{\textbf{Zachowanie symulacji przy różnych krokach czasowych $\tau$}}
     \vspace{0.2cm}
-    \includegraphics[width=\textwidth]{../figures/stability.pdf}
+    \begin{multicols}{2}
+        \includegraphics[width=\linewidth]{../figures/stability.pdf}
+        \includegraphics[width=\linewidth]{../figures/stability_2.pdf}
+    \end{multicols}
 \end{figure}
 
-Dla zbadanych wartości $\tau$, symulacja wydaje się być stabilna. Przy $\tau=10^{-7}$, zaczynają być widoczne większe fluktuacje w energii. Długi czas wykonywania programu dla mniejszych wartości $\tau$ uniemożliwił dostateczne znalezienie granicy stabilności.
 
+Dla niektórych zbadanych wartości $\tau$, symulacja wydaje się być stabilna. Natomiast, m. in. $\tau=2\cdot10^{-2}$ lub $\tau=2\cdot10^{-4}$ wyróżniają się większymi fluktuacjami wartości energii, co może przełożyć się na dokładność wyników symulacji.
+
+\pagebreak
 \section{Kryształ}
 
 Najniższą energię potencjalną otrzymano dla wartości $a\approx0.37$ [nm].
@@ -60,23 +65,25 @@ Najniższą energię potencjalną otrzymano dla wartości $a\approx0.37$ [nm].
 \begin{figure}[ht!]
     \caption{\textbf{Zależność energii potencjalnej $V$ od wartości $a$}}
     \vspace{0.2cm}
-    \includegraphics[width=\textwidth]{../figures/plot_V_vs_a.pdf}
+    \includegraphics[width=\linewidth]{../figures/plot_V_vs_a.pdf}
 \end{figure}
 
-Średnia temperatura po czasie 1 [ps] wyniosła: $T_{\text{avg}}\approx0.6925$ [K] $>$ 0 [K]. Dzieje się tak, ze względu na ograniczenia numeryczne liczb zmienno przecinkowych w pamięci komputera. Według mechaniki kwantowej, najmniejsza energia jest zwykle większa od zera, dlatego kryształ może ustalić się na temperaturze większej niż 0 [K] (przez tzw. drgania zerowe).
+Średnia temperatura po czasie 1 [ps] wyniosła: $T_{\text{avg}}\approx0.6925$ [K] $>$ 0 [K]. 
+
+Według mechaniki kwantowej, najmniejsza energia jest zwykle większa od zera, dlatego kryształ może ustalić się na temperaturze większej niż 0 [K] (przez tzw. drgania zerowe).
 
 W praktyce natomiast, jest to wynik ograniczeń numerycznych pamięci komputera i aproksymacji użytych w symulacji. Nie jest zatem możliwe dokładne odwzorowanie stanu o zerowej energii kinetycznej. Układ więc ustala się na niskiej, ale niezerowej temperaturze.
 
-Warto zauważyć, że temperatura 0K, znana jako zero bezwzględne, jest teoretyczną granicą, do której można ochłodzić układ termodynamiczny1. W rzeczywistości, osiągnięcie temperatury 0K jest niemożliwe z powodu trzeciej zasady termodynamiki1.
+Warto zauważyć, że temperatura 0 [K], znana jako zero bezwzględne, jest teoretyczną granicą, do której można ochłodzić układ termodynamiczny. W rzeczywistości, osiągnięcie temperatury 0 [K] jest niemożliwe z powodu trzeciej zasady termodynamiki.
 
 \begin{figure}[ht!]
     \caption{\textbf{Zależność hamiltonianu $H$ od czasu $t$ kryształu o znalezionej stałej sieci}}
     \vspace{0.2cm}
-    \includegraphics[width=\textwidth]{../figures/crystal_stability.pdf}
+    \includegraphics[width=\linewidth]{../figures/crystal_stability.pdf}
 \end{figure}
 \pagebreak
 
- Wartość hamiltonianu zmienia się dopiero na czwartym miejscu po przecinku, co świadczy o niewielkiej fluktuacji.
+Wartość hamiltonianu zmienia się dopiero na czwartym miejscu po przecinku, co świadczy o niewielkiej fluktuacji.
 
 \subsection{Topnienie kryształu}
 
@@ -103,7 +110,7 @@ $$
 \begin{figure}[ht!]
     \caption{\textbf{Porównanie zależności P(T) dla danych pomiarowych i gazu doskonałego}}
     \vspace{0.2cm}
-    \includegraphics[width=\textwidth]{../figures/P_vs_T.pdf}
+    \includegraphics[width=\linewidth]{../figures/P_vs_T.pdf}
 \end{figure}
 
 Na koniec przedstawiono wykresy: Hamiltonian od czasu i ciśnienie od czasu dla każdego z powyżych punktów:
@@ -113,12 +120,13 @@ Na koniec przedstawiono wykresy: Hamiltonian od czasu i ciśnienie od czasu dla 
     \vspace{0.2cm}
     \includegraphics[width=\linewidth]{../figures/gas_stability.pdf}
 \end{figure}
-\pagebreak
+
+\clearpage
 
 \section{Podsumowanie}
 
-Kod programu oraz wszelkich skryptów do zbierania i analizy danych znajduje się w repozytorium: \url{https://github.com/davkk/argon-simulation}.
+Kod programu oraz wszelkie skrypty do zbierania i analizy danych znajdują się w repozytorium: \url{https://github.com/davkk/argon-simulation}.
 
-Do wykonania zadania wykorzystałem takie technologie i narzędzia jak: Python (Numba), Bash (GNU Parallel, awk, itd.), JMOL.
+Do wykonania zadania wykorzystałem takie technologie i narzędzia jak: Python (Numba, matplotlib), Bash (GNU Parallel, awk, itd.), JMOL.
 
 \end{document}
